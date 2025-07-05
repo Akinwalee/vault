@@ -27,6 +27,25 @@ def create_metadata(key, value):
     
     except Exception as e:
         raise ValueError(f"Error updating the metadata file: {str(e)}")
+    
+def list_metadata():
+    """
+    List all key-value pairs in the metadata JSON file.
+    
+    :return: Dictionary containing all key-value pairs in the metadata file.
+    """
+    file_path = 'storage/metadata.json'
+    try:
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Metadata file not found: {file_path}")
+        
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        
+        return data
+    
+    except Exception as e:
+        raise ValueError(f"Error listing metadata: {str(e)}")
 
 
 def get_current_time():

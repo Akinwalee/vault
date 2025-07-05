@@ -1,7 +1,8 @@
 from .base_service import BaseService
 import os
 import shutil
-from utils.helpers import get_current_time, create_metadata
+from utils.helpers import get_current_time, create_metadata, list_metadata
+import uuid
 
 class FileService(BaseService):
     """
@@ -40,10 +41,34 @@ class FileService(BaseService):
                 "created_at": get_current_time(),
                 "file_name": file_name,
                 "file_size": file_size,
-                "file_path": destination_path
+                "file_path": destination_path,
+                "id": f"{uuid.uuid4()}"
             }
             result = create_metadata(file_name, data)
             if result:
                 return f"File '{file_name}' uploaded successfully to {destination_path}."
         except Exception as e:
             return f"Error uploading file: {str(e)}"
+        
+    def list_files(self):
+        """
+        List the metadata of all files in the uploads directory.
+        :return: List of files in the uploads directory.
+        """
+        try:
+            metadata = list_metadata()
+            if metadata:
+                table = f"""
+                {'ID':<36}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n
+                {'-'*36}| {'-'*12}| {'-'*9}| {'-'*20}"""
+                print(table)
+
+                for key, data in metadata.items():
+                    file_name = key
+                    file_size = data.get("file_size", "Unknown")
+                    created_at = data.get("created_at", "Unknown")
+                    id = data.get("id", "Unknown")
+                    print(f"{id:<36}| {file_name:<12}| {file_size:<9}| {created_at:<20}")
+            return True
+        except Exception as e:
+            return f"Error listing files: {str(e)}"

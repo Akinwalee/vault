@@ -1,9 +1,11 @@
 from cli.commands.test import TestCommand
 from cli.commands.upload import UploadCommand
+from cli.commands.list import ListCommand
 
 COMMANDS = {
     "test": TestCommand,
     "upload": UploadCommand,
+    "list": ListCommand,
 }
 
 def route_command(command_name, *args):
