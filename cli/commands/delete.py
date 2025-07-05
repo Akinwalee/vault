@@ -24,4 +24,4 @@ class DeleteCommand(Command):
         """
         Display help information for the delete command.
         """
-        print(FileService().help())
+        return FileService().help()

@@ -18,4 +18,4 @@ class TestCommand(Command):
         """
         Display help information for the test command.
         """
-        print(TestService().help())
+        return TestService().help()

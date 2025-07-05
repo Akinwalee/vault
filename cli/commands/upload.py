@@ -32,4 +32,4 @@ class UploadCommand(Command):
         """
         Display help information for the upload command.
         """
-        print(FileService().help())
+        return FileService().help()

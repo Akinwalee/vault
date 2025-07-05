@@ -18,4 +18,4 @@ class ListCommand(Command):
         """
         Display help information for the list command.
         """
-        print(FileService().help())
+        return FileService().help()

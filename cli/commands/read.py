@@ -25,4 +25,4 @@ class ReadCommand(Command):
         """
         Display help information for the read command.
         """
-        print(FileService().help())
+        return FileService().help()

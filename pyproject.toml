@@ -1,0 +1,16 @@
+[project]
+name = "file-vault"
+version = "1.0.0"
+description = "A basic file management cli"
+requires-python = ">=3.10"
+dependencies = ["click>=8.2"]
+
+[project.scripts]
+vault = "main:cli"
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "main"

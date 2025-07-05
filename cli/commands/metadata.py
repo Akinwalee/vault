@@ -31,4 +31,4 @@ class MetadataCommand(Command):
         """
         Display help information for the metadata command.
         """
-        print(FileService().help())
+        return FileService().help()
