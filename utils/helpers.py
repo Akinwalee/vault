@@ -1,0 +1,39 @@
+
+# Take a json file, convert it to a python dictionary, add a new key-value pair, and convert it back to json format.
+import json
+import os
+
+
+def create_metadata(key, value):
+    """
+    Update a JSON file by adding a new key-value pair.
+    
+    :param file_path: Path to the JSON file.
+    :param key: Key to add or update in the JSON file.
+    :param value: Value to set for the specified key.
+    :return: Updated JSON data as a string.
+    """
+    file_path = 'storage/metadata.json'
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        
+        data[key] = value
+        
+        with open(file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+        
+        return json.dumps(data, indent=4)
+    
+    except Exception as e:
+        raise ValueError(f"Error updating the metadata file: {str(e)}")
+
+
+def get_current_time():
+    """
+    Get the current time in a human-readable format.
+    
+    :return: Current time as a string.
+    """
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
