@@ -86,3 +86,18 @@ class FileService(BaseService):
             return table
         except Exception as e:
             return f"Error listing files: {str(e)}"
+
+    def read_metadata(self, file_name):
+        """
+        Read metadata for a specific file.
+        :param file_name: Name of the file to read metadata for.
+        :return: Metadata dictionary for the specified file.
+        """
+        try:
+            metadata = get_metadata(file_name)
+            if metadata:
+                return metadata
+            else:
+                return f"No metadata found for file '{file_name}'."
+        except Exception as e:
+            return f"Error reading metadata for file '{file_name}': {str(e)}"

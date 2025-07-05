@@ -2,12 +2,14 @@ from cli.commands.test import TestCommand
 from cli.commands.upload import UploadCommand
 from cli.commands.list import ListCommand
 from cli.commands.read import ReadCommand
+from cli.commands.metadata import MetadataCommand
 
 COMMANDS = {
     "test": TestCommand,
     "upload": UploadCommand,
     "list": ListCommand,
     "read": ReadCommand,
+    "metadata": MetadataCommand,
 }
 
 def route_command(command_name, *args):
