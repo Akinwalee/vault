@@ -11,8 +11,8 @@ class ListCommand(Command):
         """
         Execute the list command.
         """
-
-        return FileService().list_files()
+        print(FileService().list_files())
+        return True
 
     def help(self):
         """

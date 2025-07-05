@@ -47,6 +47,15 @@ def list_metadata():
     except Exception as e:
         raise ValueError(f"Error listing metadata: {str(e)}")
 
+def get_metadata(file_name):
+    """
+    Get metadata for a specific file from the metadata JSON file.
+    
+    :param file_name: Name of the file to retrieve metadata for.
+    :return: Metadata dictionary for the specified file.
+    """
+    metadata = list_metadata()
+    return metadata.get(file_name, None)
 
 def get_current_time():
     """

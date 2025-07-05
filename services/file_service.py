@@ -1,7 +1,7 @@
 from .base_service import BaseService
 import os
 import shutil
-from utils.helpers import get_current_time, create_metadata, list_metadata
+from utils.helpers import get_current_time, create_metadata, list_metadata, get_metadata
 import uuid
 
 class FileService(BaseService):
@@ -17,13 +17,26 @@ class FileService(BaseService):
         return """
             FileService: Use this service to perform file operations like reading, uploading, listing and deleting files."""
 
-    def read_file(self, file_path):
+    def read_file(self, file_name):
         """
         Read the contents of a file.
-        :param file_path: Path to the file to read.
-        :return: Contents of the file.
+        :param file_path: Name of the file to read.
+        :return: Content of the file.
         """
-        pass
+        try:
+            metadata = get_metadata(file_name)
+            if metadata:
+                file_path = metadata.get("file_path")
+                if not os.path.exists(file_path):
+                    return f"File '{file_name}' does not exist at {file_path}."
+                with open(file_path, 'r') as file:
+                    content = file.read()
+                return content
+            else:
+                return f"No metadata found for file '{file_name}'."
+        except Exception as e:
+            return f"Error reading file '{file_name}': {str(e)}"
+
 
     def upload_file(self, file_path):
         """
@@ -61,14 +74,15 @@ class FileService(BaseService):
                 table = f"""
                 {'ID':<36}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n
                 {'-'*36}| {'-'*12}| {'-'*9}| {'-'*20}"""
-                print(table)
 
                 for key, data in metadata.items():
                     file_name = key
                     file_size = data.get("file_size", "Unknown")
                     created_at = data.get("created_at", "Unknown")
                     id = data.get("id", "Unknown")
-                    print(f"{id:<36}| {file_name:<12}| {file_size:<9}| {created_at:<20}")
-            return True
+                    file_row = f"{id:<36}| {file_name:<12}| {file_size:<9}| {created_at:<20}"
+                    table += f"\n{file_row}"
+
+            return table
         except Exception as e:
             return f"Error listing files: {str(e)}"
