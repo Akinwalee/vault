@@ -47,7 +47,7 @@ class FileService(BaseService):
         try:
             file_name = file_path.split('/')[-1]
             file_size = os.path.getsize(file_path)
-            print(file_path)
+            
             destination_path = f"storage/uploads/{file_name}"
             shutil.copy(file_path, destination_path)
             data = {
