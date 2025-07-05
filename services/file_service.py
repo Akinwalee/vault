@@ -1,7 +1,7 @@
 from .base_service import BaseService
 import os
 import shutil
-from utils.helpers import get_current_time, create_metadata, list_metadata, get_metadata
+from utils.helpers import get_current_time, create_metadata, list_metadata, get_metadata, delete_metadata
 import uuid
 
 class FileService(BaseService):
@@ -101,3 +101,24 @@ class FileService(BaseService):
                 return f"No metadata found for file '{file_name}'."
         except Exception as e:
             return f"Error reading metadata for file '{file_name}': {str(e)}"
+        
+    def delete_file(self, file_name):
+        """
+        Delete a file from the server.
+        :param file_name: Name of the file to delete.
+        :return: Confirmation of deletion.
+        """
+        try:
+            metadata = get_metadata(file_name)
+            if metadata:
+                file_path = metadata.get("file_path")
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                else:
+                    return f"File '{file_name}' does not exist at {file_path}."
+                delete_metadata(file_name)
+                return f"File '{file_name}' deleted successfully."
+            else:
+                return f"No metadata found for file '{file_name}'."
+        except Exception as e:
+            return f"Error deleting file '{file_name}': {str(e)}"

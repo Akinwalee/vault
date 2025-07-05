@@ -4,12 +4,12 @@ import json
 import os
 
 
-def create_metadata(key, value):
+def create_metadata(file_name, value):
     """
     Update a JSON file by adding a new key-value pair.
     
     :param file_path: Path to the JSON file.
-    :param key: Key to add or update in the JSON file.
+    :param file_name: File name to add or update in the JSON file.
     :param value: Value to set for the specified key.
     :return: Updated JSON data as a string.
     """
@@ -18,7 +18,7 @@ def create_metadata(key, value):
         with open(file_path, 'r') as file:
             data = json.load(file)
         
-        data[key] = value
+        data[file_name] = value
         
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)
@@ -65,3 +65,26 @@ def get_current_time():
     """
     from datetime import datetime
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def delete_metadata(file_name):
+    """
+    Delete a key-value pair from the metadata JSON file.
+    
+    :param file_name: File name to delete from the metadata file.
+    :return: Updated JSON data as a string.
+    """
+    file_path = 'storage/metadata.json'
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        
+        if file_name in data:
+            del data[file_name]
+        
+        with open(file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+        
+        return json.dumps(data, indent=4)
+    
+    except Exception as e:
+        raise ValueError(f"Error deleting metadata: {str(e)}")

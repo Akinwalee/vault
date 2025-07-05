@@ -3,6 +3,7 @@ from cli.commands.upload import UploadCommand
 from cli.commands.list import ListCommand
 from cli.commands.read import ReadCommand
 from cli.commands.metadata import MetadataCommand
+from cli.commands.delete import DeleteCommand
 
 COMMANDS = {
     "test": TestCommand,
@@ -10,6 +11,7 @@ COMMANDS = {
     "list": ListCommand,
     "read": ReadCommand,
     "metadata": MetadataCommand,
+    "delete": DeleteCommand,
 }
 
 def route_command(command_name, *args):
