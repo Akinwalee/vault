@@ -70,20 +70,8 @@ class FileService(BaseService):
         """
         try:
             metadata = list_metadata()
-            if metadata:
-                table = f"""
-                {'ID':<36}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n
-                {'-'*36}| {'-'*12}| {'-'*9}| {'-'*20}"""
 
-                for key, data in metadata.items():
-                    file_name = key
-                    file_size = data.get("file_size", "Unknown")
-                    created_at = data.get("created_at", "Unknown")
-                    id = data.get("id", "Unknown")
-                    file_row = f"{id:<36}| {file_name:<12}| {file_size:<9}| {created_at:<20}"
-                    table += f"\n{file_row}"
-
-            return table
+            return metadata
         except Exception as e:
             return f"Error listing files: {str(e)}"
 
