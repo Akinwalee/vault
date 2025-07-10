@@ -11,8 +11,8 @@ class ListCommand(Command):
         """
         Execute the list command.
         """
-        result = FileService().list_files()
-        if result:
+        metadata = FileService().list_files()
+        if metadata:
             table = f"""
                     {'ID':<36}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n
                     {'-'*36}| {'-'*12}| {'-'*9}| {'-'*20}"""
