@@ -49,7 +49,7 @@ class FileModel(BaseModel):
             "user_id": self.user_id,
             "file_name": self.file_name,
             "file_size": self.file_size,
-            "file": self.file_id,
+            "file_id": self.file_id,
             "created_at": self.created_at
         }
 
@@ -65,3 +65,16 @@ class FileMetadata(BaseModel):
     file_path: str = Field(..., description="Path to the file on the server")
     file_id: str = Field(..., description="File ID from GridFS")
     created_at: str = Field(..., description="Creation timestamp of the file")
+
+    def to_dict(self):
+        """
+        Convert the file metadata model to a dictionary.
+        :return: Dictionary representation of the file metadata model.
+        """
+        return {
+            "file_name": self.file_name,
+            "file_size": self.file_size,
+            "file_path": self.file_path,
+            "file_id": self.file_id,
+            "created_at": self.created_at
+        }

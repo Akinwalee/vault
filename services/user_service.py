@@ -5,17 +5,15 @@ from uuid import uuid4
 import bcrypt
 
 
-
-db = Database()
-mongo_db = db.get_mongo_db("vault")
-redis = db.get_redis_client()
-
-
 class UserService(BaseService):
     """
     Service for user operations.
     Inherits from BaseService to provide common functionality.
     """
+
+    db = Database()
+    mongo_db = db.get_mongo_db("vault")
+    redis = db.get_redis_client()
 
     def help(self):
         """
@@ -37,7 +35,7 @@ class UserService(BaseService):
             user_data['password'] = hash.decode('utf-8')
             user_data['id'] = id
             user_data['created_at'] = user_data.get('created_at', str(uuid4()))
-            await mongo_db.users.insert_one(user_data)
+            await self.mongo_db.users.insert_one(user_data)
             return f"User '{user_data['username']}' created successfully."
         except Exception as e:
             return f"Error creating user: {str(e)}"
@@ -48,11 +46,11 @@ class UserService(BaseService):
         :return: User information if session exists, otherwise None.
         """
         try:
-            session = redis.get("session")
+            session = self.redis.get("session")
             if session:
                 user_id = session.get("user_id")
                 if user_id:
-                    user_data = await mongo_db.users.find_one({"id": user_id})
+                    user_data = await self.mongo_db.users.find_one({"id": user_id})
                     if user_data:
                         return UserModel(**user_data)
             return None
@@ -67,7 +65,7 @@ class UserService(BaseService):
         :return: User information if authentication is successful, otherwise None.
         """
         try:
-            user_data = await mongo_db.users.find_one({"username": username})
+            user_data = await self.mongo_db.users.find_one({"username": username})
             if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data['password'].encode('utf-8')):
                 return UserModel(**user_data)
             return None
@@ -85,7 +83,7 @@ class UserService(BaseService):
             user = await self.authenticate_user(username, password)
             if user:
                 session_data = {"user_id": user.id, "token": str(uuid4())}
-                redis.set("session", session_data)
+                self.redis.set("session", session_data)
                 return f"User '{username}' logged in successfully."
             else:
                 return "Invalid username or password."
@@ -98,7 +96,20 @@ class UserService(BaseService):
         :return: Confirmation of logout.
         """
         try:
-            redis.delete("session")
+            self.redis.delete("session")
             return "User logged out successfully."
         except Exception as e:
             return f"Error logging out user: {str(e)}"
+        
+    async def get_user_id(self):
+        """
+        Get the user ID from the current session.
+        :return: User ID if session exists, otherwise None.
+        """
+        try:
+            session = self.redis.get("session")
+            if session:
+                return session.get("user_id")
+            return None
+        except Exception as e:
+            return f"Error retrieving user ID: {str(e)}"

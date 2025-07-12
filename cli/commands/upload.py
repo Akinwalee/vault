@@ -1,5 +1,6 @@
 from cli.command import Command
 from services.file_service import FileService
+from services.user_service import UserService
 import os
 
 
@@ -15,6 +16,10 @@ class UploadCommand(Command):
         
         :param file_path: Path to the file to upload.
         """
+        user = UserService.get_user_id()
+        if not user:
+            raise ValueError("No user session found. Cannot upload file.")
+
         file_path = args[0] if args else None
 
         if not file_path:

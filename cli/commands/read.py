@@ -1,5 +1,6 @@
 from cli.command import Command
 from services.file_service import FileService
+from services.user_service import UserService
 
 
 class ReadCommand(Command):
@@ -16,6 +17,10 @@ class ReadCommand(Command):
         """
         if not args or not isinstance(args[0], str) or not args[0].strip():
             raise ValueError("File name must be provided and cannot be empty.")
+        
+        user = UserService.get_user_id()
+        if not user:
+            raise ValueError("No user session found. Cannot read file.")
         
         file_path = args[0]
         print(FileService().read_file(file_path))

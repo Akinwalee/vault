@@ -14,8 +14,12 @@ class WhoamiCommand(Command):
         
         :param args: Additional arguments (not used).
         """
-        user = UserService().get_current_user().model_dump()
-        output = f"Current User: {user.username}\nEmail: {user.email}"
+        user = UserService.get_user_id()
+        if not user:
+            raise ValueError("No user session found. Cannot display user information.")
+
+        current_user = UserService().get_current_user().model_dump()
+        output = f"Current User: {current_user.username}\nEmail: {current_user.email}"
         return output
 
     def help(self):
