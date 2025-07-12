@@ -4,6 +4,8 @@ from cli.commands.list import ListCommand
 from cli.commands.read import ReadCommand
 from cli.commands.metadata import MetadataCommand
 from cli.commands.delete import DeleteCommand
+from cli.commands.register import RegisterCommand
+
 
 COMMANDS = {
     "test": TestCommand,
@@ -12,6 +14,7 @@ COMMANDS = {
     "read": ReadCommand,
     "metadata": MetadataCommand,
     "delete": DeleteCommand,
+    "register": RegisterCommand
 }
 
 def route_command(command_name, *args):

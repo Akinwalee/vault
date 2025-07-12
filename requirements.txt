@@ -1,1 +1,6 @@
 click
+redis
+pymongo
+python-dotenv
+pydantic
+bcrypt
