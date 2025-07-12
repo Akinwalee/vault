@@ -42,7 +42,7 @@ class UserService(BaseService):
         except Exception as e:
             return f"Error creating user: {str(e)}"
         
-    async def get_user(self):
+    async def get_current_user(self):
         """
         Get the current user from the session.
         :return: User information if session exists, otherwise None.

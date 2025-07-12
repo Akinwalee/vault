@@ -5,6 +5,9 @@ from cli.commands.read import ReadCommand
 from cli.commands.metadata import MetadataCommand
 from cli.commands.delete import DeleteCommand
 from cli.commands.register import RegisterCommand
+from cli.commands.login import LoginCommand
+from cli.commands.logout import LogoutCommand
+from cli.commands.whoami import WhoamiCommand
 
 
 COMMANDS = {
@@ -14,7 +17,10 @@ COMMANDS = {
     "read": ReadCommand,
     "metadata": MetadataCommand,
     "delete": DeleteCommand,
-    "register": RegisterCommand
+    "register": RegisterCommand,
+    "login": LoginCommand,
+    "logout": LogoutCommand,
+    "whoami": WhoamiCommand
 }
 
 def route_command(command_name, *args):
