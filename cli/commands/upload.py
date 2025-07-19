@@ -31,7 +31,7 @@ class UploadCommand(Command):
         if not os.path.isfile(file_path):
             raise ValueError(f"File does not exist: {file_path}")
         
-        return FileService().upload_file(file_path)
+        return FileService().upload_file(file_path, user_id=user)
 
     def help(self):
         """

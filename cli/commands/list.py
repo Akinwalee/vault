@@ -16,21 +16,21 @@ class ListCommand(Command):
         if not user:
             raise ValueError("No user session found. Cannot list files.")
         
-        metadata = FileService().list_files()
+        metadata = FileService().list_files(user_id=user)
+        if not metadata:
+            print("No files found.")
+            return True
         if metadata:
-            table = f"""
-                    {'ID':<36}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n
-                    {'-'*36}| {'-'*12}| {'-'*9}| {'-'*20}"""
+            table = f"{'ID':<24}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n{'-'*24}| {'-'*12}| {'-'*12}| {'-'*20}"
     
             for key, data in metadata.items():
                 file_name = key
                 file_size = data.get("file_size", "Unknown")
                 created_at = data.get("created_at", "Unknown")
-                id = data.get("id", "Unknown")
-                file_row = f"{id:<36}| {file_name:<12}| {file_size:<9}| {created_at:<20}"
+                id = data.get("file_id", "Unknown")
+                file_row = f"{id:<20}| {file_name:<12}| {file_size:<12}| {created_at:<20}"
                 table += f"\n{file_row}"
-            print(table)
-        return True
+        return (f'\n{table}')
 
     def help(self):
         """

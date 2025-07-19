@@ -15,14 +15,17 @@ class UserService(BaseService):
     mongo_db = db.get_mongo_db("vault")
     redis = db.get_redis_client()
 
+    @classmethod
     def help(self):
         """
         Display help information for user operations.
         """
         return """
-            UserService: Use this service to perform user operations like authentication, registration, and profile management."""
+            UserService: Use this service to perform user operations like authentication, registration, and profile management.
+            """
     
-    async def create_user(self, user: UserModel):
+    @classmethod
+    def create_user(self, user: UserModel):
         """
         Create a new user.
         :param user_data: Dictionary containing user information.
@@ -30,34 +33,41 @@ class UserService(BaseService):
         """
         try:
             id = str(uuid4())
+            print(user)
             user_data = user.to_dict()
+            print("user_data:", user_data)
             hash = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt())
+            print("hash:", hash)
+            print(user_data['password'])
             user_data['password'] = hash.decode('utf-8')
             user_data['id'] = id
             user_data['created_at'] = user_data.get('created_at', str(uuid4()))
-            await self.mongo_db.users.insert_one(user_data)
+            self.mongo_db.users.insert_one(user_data)
             return f"User '{user_data['username']}' created successfully."
         except Exception as e:
+            print(e)
             return f"Error creating user: {str(e)}"
         
-    async def get_current_user(self):
+    @classmethod
+    def get_current_user(cls):
         """
         Get the current user from the session.
         :return: User information if session exists, otherwise None.
         """
         try:
-            session = self.redis.get("session")
+            session = {k.decode('utf-8'): v.decode('utf-8') for k, v in cls.redis.hgetall("session").items()}
             if session:
                 user_id = session.get("user_id")
                 if user_id:
-                    user_data = await self.mongo_db.users.find_one({"id": user_id})
+                    user_data = cls.mongo_db.users.find_one({"id": user_id})
                     if user_data:
                         return UserModel(**user_data)
             return None
         except Exception as e:
             return f"Error retrieving user: {str(e)}"
-        
-    async def authenticate_user(self, username: str, password: str):
+    
+    @classmethod
+    def authenticate_user(cls, username: str, password: str):
         """
         Authenticate a user with username and password.
         :param username: Username of the user.
@@ -65,14 +75,15 @@ class UserService(BaseService):
         :return: User information if authentication is successful, otherwise None.
         """
         try:
-            user_data = await self.mongo_db.users.find_one({"username": username})
+            user_data = cls.mongo_db.users.find_one({"username": username})
             if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data['password'].encode('utf-8')):
                 return UserModel(**user_data)
             return None
         except Exception as e:
             return f"Error authenticating user: {str(e)}"
         
-    async def login_user(self, username: str, password: str):
+    @classmethod
+    def login_user(cls, username: str, password: str):
         """
         Log in a user by setting the session.
         :param username: Username of the user.
@@ -80,34 +91,36 @@ class UserService(BaseService):
         :return: Confirmation of login or error message.
         """
         try:
-            user = await self.authenticate_user(username, password)
+            user = cls.authenticate_user(username, password)
             if user:
                 session_data = {"user_id": user.id, "token": str(uuid4())}
-                self.redis.set("session", session_data)
+                cls.redis.hset("session", mapping=session_data)
                 return f"User '{username}' logged in successfully."
             else:
                 return "Invalid username or password."
         except Exception as e:
             return f"Error logging in user: {str(e)}"
         
-    async def logout_user(self):
+    @classmethod
+    def logout_user(cls):
         """
         Log out the current user by clearing the session.
         :return: Confirmation of logout.
         """
         try:
-            self.redis.delete("session")
+            cls.redis.delete("session")
             return "User logged out successfully."
         except Exception as e:
             return f"Error logging out user: {str(e)}"
         
-    async def get_user_id(self):
+    @classmethod
+    def get_user_id(cls):
         """
         Get the user ID from the current session.
         :return: User ID if session exists, otherwise None.
         """
         try:
-            session = self.redis.get("session")
+            session = {k.decode('utf-8'): v.decode('utf-8') for k, v in cls.redis.hgetall("session").items()}
             if session:
                 return session.get("user_id")
             return None

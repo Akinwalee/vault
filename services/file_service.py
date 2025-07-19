@@ -55,7 +55,7 @@ class FileService(BaseService):
             return f"Error reading file '{file_name}': {str(e)}"
 
 
-    async def upload_file(self, file_path):
+    def upload_file(self, file_path, user_id=None):
         """
         Upload a file to the server.
         :param file_path: Path to the file to upload.
@@ -73,24 +73,25 @@ class FileService(BaseService):
                 file_name=file_name,
                 file_size=file_size,
                 file_path=file_path,
+                user_id=user_id,
                 file_id=str(file_id),
                 created_at=get_current_time()
             )
             file_model = FileModel(
-                user_id=self.redis.get("session").get("user_id"),
+                user_id=user_id,
                 file_name=file_name,
                 file_size=file_size,
                 file_id=str(file_id),
                 created_at=get_current_time()
             )
-            await self.mongo_db.files.insert_one(file_model.to_dict())
+            self.mongo_db.files.insert_one(file_model.to_dict())
             result = create_metadata(file_name, file_metadata.to_dict())
             if result:
                 return f"File '{file_name}' uploaded successfully."
         except Exception as e:
             return f"Error uploading file: {str(e)}"
         
-    def list_files(self):
+    def list_files(self, user_id=None):
         """
         List the metadata of all files in the uploads directory.
         :return: List of files in the uploads directory.

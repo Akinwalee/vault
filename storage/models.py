@@ -24,6 +24,7 @@ class UserModel(BaseModel):
             "id": self.id,
             "username": self.username,
             "email": self.email,
+            "password": self.password,
             "created_at": self.created_at
         }
 
@@ -63,6 +64,7 @@ class FileMetadata(BaseModel):
     file_name: str = Field(..., description="Name of the file")
     file_size: int = Field(..., description="Size of the file in bytes")
     file_path: str = Field(..., description="Path to the file on the server")
+    user_id: str = Field(..., description="ID of the user who uploaded the file")
     file_id: str = Field(..., description="File ID from GridFS")
     created_at: str = Field(..., description="Creation timestamp of the file")
 
@@ -75,6 +77,7 @@ class FileMetadata(BaseModel):
             "file_name": self.file_name,
             "file_size": self.file_size,
             "file_path": self.file_path,
+            "user_id": self.user_id,
             "file_id": self.file_id,
             "created_at": self.created_at
         }

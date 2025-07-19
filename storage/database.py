@@ -1,5 +1,5 @@
-from pymongo import MongoClient
-from redis import Redis
+from pymongo import MongoClient, errors
+from redis import Redis, exceptions as redis_exceptions
 import os
 from dotenv import load_dotenv
 
@@ -22,8 +22,21 @@ class Database:
         :param redis_host: Host for Redis connection.
         :param redis_port: Port for Redis connection.
         """
-        self.mongo_client = MongoClient(mongo_uri)
-        self.redis_client = Redis(host=redis_host, port=redis_port, db=0)
+        try:
+            self.mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+            self.mongo_client.admin.command('ping')
+            print("MongoDB connected successfully.")
+        except errors.ConnectionFailure as e:
+            print(f"MongoDB connection failed: {e}")
+            self.mongo_client = None
+
+        try:
+            self.redis_client = Redis(host=redis_host, port=redis_port, db=0, socket_connect_timeout=5)
+            self.redis_client.ping()
+            print("Redis connected successfully.")
+        except redis_exceptions.ConnectionError as e:
+            print(f"Redis connection failed: {e}")
+            self.redis_client = None
 
     def get_mongo_db(self, db_name):
         """
