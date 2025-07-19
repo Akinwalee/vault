@@ -16,7 +16,7 @@ class UserService(BaseService):
     redis = db.get_redis_client()
 
     @classmethod
-    def help(self):
+    def help(cls):
         """
         Display help information for user operations.
         """
@@ -25,7 +25,7 @@ class UserService(BaseService):
             """
     
     @classmethod
-    def create_user(self, user: UserModel):
+    def create_user(cls, user: UserModel):
         """
         Create a new user.
         :param user_data: Dictionary containing user information.
@@ -33,19 +33,18 @@ class UserService(BaseService):
         """
         try:
             id = str(uuid4())
-            print(user)
             user_data = user.to_dict()
-            print("user_data:", user_data)
+            existing_user = cls.mongo_db.users.find_one({"email": user_data['email']})
+            if existing_user:
+                return "A user with that email already exists"
+            
             hash = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt())
-            print("hash:", hash)
-            print(user_data['password'])
             user_data['password'] = hash.decode('utf-8')
             user_data['id'] = id
             user_data['created_at'] = user_data.get('created_at', str(uuid4()))
-            self.mongo_db.users.insert_one(user_data)
+            cls.mongo_db.users.insert_one(user_data)
             return f"User '{user_data['username']}' created successfully."
         except Exception as e:
-            print(e)
             return f"Error creating user: {str(e)}"
         
     @classmethod

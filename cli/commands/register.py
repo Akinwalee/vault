@@ -19,14 +19,11 @@ class RegisterCommand(Command):
         username = click.prompt('Enter your username', type=str)
         email = click.prompt('Enter your email', type=str)
         password = click.prompt('Enter your password', type=str, hide_input=True)
-        print("username:", username, "email:", email, "password:", password)
         args = {'username': username, 'email': email, 'password': password, 'created_at': get_current_time()}
-        print("args:", args)
         if not args or len(args) < 3 or not all([args]):
             raise ValueError("Username, email, and password must be provided.")
         
         user = UserModel(**args)
-        print("user:", user.model_dump())
         
         return UserService().create_user(user)
     
