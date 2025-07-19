@@ -15,9 +15,9 @@ class WhoamiCommand(Command):
         :param args: Additional arguments (not used).
         """
         current_user = UserService().get_current_user()
-        if not current_user:
+        if not current_user or isinstance(current_user, str):
             raise ValueError("No user session found.")
-
+        
         output = f"\nCurrent User: {current_user.username}\nEmail: {current_user.email}"
         return output
 

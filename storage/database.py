@@ -2,6 +2,7 @@ from pymongo import MongoClient, errors
 from redis import Redis, exceptions as redis_exceptions
 import os
 from dotenv import load_dotenv
+from gridfs import GridFS
 
 
 load_dotenv()
@@ -25,7 +26,8 @@ class Database:
         try:
             self.mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
             self.mongo_client.admin.command('ping')
-            print("MongoDB connected successfully.")
+            self.fs = GridFS(self.get_mongo_db("vault"), collection="files")
+            print("MongoDB and GridFs connected successfully.")
         except errors.ConnectionFailure as e:
             print(f"MongoDB connection failed: {e}")
             self.mongo_client = None
@@ -37,6 +39,8 @@ class Database:
         except redis_exceptions.ConnectionError as e:
             print(f"Redis connection failed: {e}")
             self.redis_client = None
+            
+
 
     def get_mongo_db(self, db_name):
         """

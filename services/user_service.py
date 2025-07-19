@@ -1,5 +1,5 @@
 from .base_service import BaseService
-from storage.database import Database
+from repositories.user_repository import UserRepository
 from storage.models import UserModel
 from uuid import uuid4
 import bcrypt
@@ -10,10 +10,6 @@ class UserService(BaseService):
     Service for user operations.
     Inherits from BaseService to provide common functionality.
     """
-
-    db = Database()
-    mongo_db = db.get_mongo_db("vault")
-    redis = db.get_redis_client()
 
     @classmethod
     def help(cls):
@@ -34,7 +30,7 @@ class UserService(BaseService):
         try:
             id = str(uuid4())
             user_data = user.to_dict()
-            existing_user = cls.mongo_db.users.find_one({"email": user_data['email']})
+            existing_user = UserRepository().find_by_email(user_data["email"])
             if existing_user:
                 return "A user with that email already exists"
             
@@ -42,7 +38,7 @@ class UserService(BaseService):
             user_data['password'] = hash.decode('utf-8')
             user_data['id'] = id
             user_data['created_at'] = user_data.get('created_at', str(uuid4()))
-            cls.mongo_db.users.insert_one(user_data)
+            UserRepository().create_user(user_data)
             return f"User '{user_data['username']}' created successfully."
         except Exception as e:
             return f"Error creating user: {str(e)}"
@@ -54,11 +50,11 @@ class UserService(BaseService):
         :return: User information if session exists, otherwise None.
         """
         try:
-            session = {k.decode('utf-8'): v.decode('utf-8') for k, v in cls.redis.hgetall("session").items()}
+            session = {k.decode('utf-8'): v.decode('utf-8') for k, v in UserRepository().get_session()}
             if session:
                 user_id = session.get("user_id")
                 if user_id:
-                    user_data = cls.mongo_db.users.find_one({"id": user_id})
+                    user_data = UserRepository().find_by_id(user_id)
                     if user_data:
                         return UserModel(**user_data)
             return None
@@ -74,7 +70,7 @@ class UserService(BaseService):
         :return: User information if authentication is successful, otherwise None.
         """
         try:
-            user_data = cls.mongo_db.users.find_one({"username": username})
+            user_data = UserRepository().find_by_username(username)
             if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data['password'].encode('utf-8')):
                 return UserModel(**user_data)
             return None
@@ -91,9 +87,10 @@ class UserService(BaseService):
         """
         try:
             user = cls.authenticate_user(username, password)
+            print(user)
             if user:
                 session_data = {"user_id": user.id, "token": str(uuid4())}
-                cls.redis.hset("session", mapping=session_data)
+                UserRepository().create_session(session_data)
                 return f"User '{username}' logged in successfully."
             else:
                 return "Invalid username or password."
@@ -107,7 +104,7 @@ class UserService(BaseService):
         :return: Confirmation of logout.
         """
         try:
-            cls.redis.delete("session")
+            UserRepository().delete_session()
             return "User logged out successfully."
         except Exception as e:
             return f"Error logging out user: {str(e)}"
@@ -119,7 +116,7 @@ class UserService(BaseService):
         :return: User ID if session exists, otherwise None.
         """
         try:
-            session = {k.decode('utf-8'): v.decode('utf-8') for k, v in cls.redis.hgetall("session").items()}
+            session = {k.decode('utf-8'): v.decode('utf-8') for k, v in UserRepository().get_session()}
             if session:
                 return session.get("user_id")
             return None

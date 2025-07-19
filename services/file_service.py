@@ -1,13 +1,10 @@
 from .base_service import BaseService
 import os
-import shutil
 from utils.helpers import get_current_time, create_metadata, list_metadata, get_metadata, delete_metadata
-import uuid
-from storage.database import Database
 from storage.models import FileModel, FileMetadata
-import gridfs
 from tempfile import NamedTemporaryFile
 from services.user_service import UserService
+from repositories.file_repository import FileRepository
 
 
 class FileService(BaseService):
@@ -15,10 +12,6 @@ class FileService(BaseService):
     Service for file operations.
     Inherits from BaseService to provide common functionality.
     """
-    db = Database()
-    mongo_db = db.get_mongo_db("vault")
-    redis = db.get_redis_client()
-    fs = gridfs.GridFS(mongo_db, collection="files")
 
     def help(self):
         """
@@ -44,9 +37,9 @@ class FileService(BaseService):
                 return f"Unauthorized access to file '{file_name}'."
             
             with NamedTemporaryFile('+w', delete=True) as temp_file:
-                temp_file = self.fs.find_one({"filename": file_name})
+                temp_file = FileRepository().retrieve_file(file_name)
                 if temp_file:
-                    content = temp_file.read().decode('utf-8')
+                    content = temp_file.decode('utf-8')
                 else:
                     return f"File '{file_name}' not found in the database."
             return content
@@ -66,7 +59,7 @@ class FileService(BaseService):
             file_size = os.path.getsize(file_path)
 
             with open(file_path, 'rb') as file:
-                file_id = self.fs.put(file, filename=file_name, content_type='application/octet-stream')
+                file_id = FileRepository().upload_file(file, file_name)
 
 
             file_metadata = FileMetadata(
@@ -84,7 +77,7 @@ class FileService(BaseService):
                 file_id=str(file_id),
                 created_at=get_current_time()
             )
-            self.mongo_db.files.insert_one(file_model.to_dict())
+            FileRepository().save_file(file_model)
             result = create_metadata(file_name, file_metadata.to_dict())
             if result:
                 return f"File '{file_name}' uploaded successfully."
@@ -148,12 +141,9 @@ class FileService(BaseService):
             
             file_id = metadata.get("file_id")
             if file_id:
-                self.fs.delete(file_id)
-                file_path = metadata.get("file_path")
-                if file_path and os.path.exists(file_path):
-                    os.remove(file_path)
+                FileRepository().delete_file(file_name, file_id)
             else:
-                return f"File '{file_name}' does not exist at {file_path}."
+                return f"File '{file_name}' does not exist."
             delete_metadata(file_name)
             return f"File '{file_name}' deleted successfully."
 

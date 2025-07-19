@@ -38,22 +38,3 @@ class UploadCommand(Command):
         Display help information for the upload command.
         """
         return FileService().help()
-    
-
-
-
-    """
-    Session.
-
-    redis = {
-        "session": {
-            "token": "mytoken,
-            "user_id": "myuserid",
-            }
-    }
-
-
-    session = redis.get("session)
-    if session:
-        user = session.user_id
-    """
