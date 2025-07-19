@@ -8,6 +8,8 @@ from cli.commands.register import RegisterCommand
 from cli.commands.login import LoginCommand
 from cli.commands.logout import LogoutCommand
 from cli.commands.whoami import WhoamiCommand
+from cli.commands.publish import PublishCommand
+from cli.commands.unpublish import UnpublishCommand
 
 
 COMMANDS = {
@@ -20,7 +22,9 @@ COMMANDS = {
     "register": RegisterCommand,
     "login": LoginCommand,
     "logout": LogoutCommand,
-    "whoami": WhoamiCommand
+    "whoami": WhoamiCommand,
+    "publish": PublishCommand,
+    "unpublish": UnpublishCommand
 }
 
 def route_command(command_name, *args):

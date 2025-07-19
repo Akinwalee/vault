@@ -75,6 +75,21 @@ class FileRepository:
                 return None
         except Exception as e:
             return f"Error deleting file: {str(e)}"
+        
+    def update_file(self, file_name, new_file_data):
+        """
+        Update a file's metadata in the database.
+        :param file_name: Name of the file to update.
+        :param new_file_data: New data for the file.
+        :return: Confirmation of update.
+        """
+        try:
+            result = self.mongo_db.files.update_one({"file_name": file_name}, {"$set": new_file_data})
+            if result.modified_count > 0:
+                return f"File '{file_name}' updated successfully."
+            return "No changes made to the file."
+        except Exception as e:
+            return f"Error updating file: {str(e)}"
 
 
     

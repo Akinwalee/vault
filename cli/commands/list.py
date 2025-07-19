@@ -11,15 +11,12 @@ class ListCommand(Command):
     def execute(self, *args):
         """
         Execute the list command.
+        :param args: Additional arguments (not used).
         """
-        user = UserService.get_user_id()
-        if not user:
-            raise ValueError("No user session found. Cannot list files.")
         
-        metadata = FileService().list_files(user_id=user)
+        metadata = FileService().list_files()
         if not metadata:
-            print("No files found.")
-            return True
+            return ("No files found.")
         if metadata:
             table = f"{'ID':<24}| {'File Name':<12}| {'Size (bytes)':<9}| {'Uploaded At':<20} \n{'-'*24}| {'-'*12}| {'-'*12}| {'-'*20}"
     

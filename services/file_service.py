@@ -29,11 +29,9 @@ class FileService(BaseService):
         try:
             metadata = get_metadata(file_name)
             user_id = UserService.get_user_id()
-            if not user_id:
-                return "No user session found. Cannot read file."
             if not metadata:
                 return f"No metadata found for file '{file_name}'."
-            if metadata.get("user_id") != user_id:
+            if metadata.get("user_id") != user_id and metadata.get("visibility") != 'public':
                 return f"Unauthorized access to file '{file_name}'."
             
             with NamedTemporaryFile('+w', delete=True) as temp_file:
@@ -96,9 +94,9 @@ class FileService(BaseService):
             
             user_id = UserService.get_user_id()
             if user_id:
-                metadata = {k: v for k, v in metadata.items() if v.get("user_id") == user_id}
+                metadata = {k: v for k, v in metadata.items() if v.get("user_id") == user_id or v.get("visibility") == 'public'}
             else:
-                return "No user session found. Cannot list files."
+                metadata = {k: v for k, v in metadata.items() if v.get("visibility") == 'public'}
 
             return metadata
         except Exception as e:
@@ -113,11 +111,9 @@ class FileService(BaseService):
         try:
             metadata = get_metadata(file_name)
             user_id = UserService.get_user_id()
-            if not user_id:
-                return "No user session found. Cannot read metadata."
             if not metadata:
                 return f"No metadata found for file '{file_name}'."
-            if metadata.get("user_id") != user_id:
+            if metadata.get("user_id") != user_id and metadata.get("visibility") != 'public':
                 return f"Unauthorized access to metadata for file '{file_name}'."
             return metadata
         except Exception as e:
@@ -149,3 +145,54 @@ class FileService(BaseService):
 
         except Exception as e:
             return f"Error deleting file '{file_name}': {str(e)}"
+        
+    
+    def publish_file(self, file_name):
+        """
+        Publish a file to make it accessible to all users.
+        :param file_name: Name of the file to publish.
+        :return: Confirmation of publication.
+        """
+        try:
+            metadata = get_metadata(file_name)
+            user_id = UserService.get_user_id()
+            if not user_id:
+                return "No user session found. Cannot publish file."
+            if not metadata:
+                return f"No metadata found for file '{file_name}'."
+            if metadata.get("user_id") != user_id:
+                return f"Unauthorized access to publish file '{file_name}'."
+            
+            metadata['visibility'] = 'public'
+            create_metadata(file_name, metadata)
+            
+            FileRepository().update_file(file_name, metadata)
+            return f"File '{file_name}' published successfully."
+        
+        except Exception as e:
+            return f"Error publishing file '{file_name}': {str(e)}"
+        
+    def unpublish_file(self, file_name):
+        """
+        Unpublish a file to restrict access to the owner only.
+        :param file_name: Name of the file to unpublish.
+        :return: Confirmation of unpublication.
+        """
+        try:
+            metadata = get_metadata(file_name)
+            user_id = UserService.get_user_id()
+            if not user_id:
+                return "No user session found. Cannot unpublish file."
+            if not metadata:
+                return f"No metadata found for file '{file_name}'."
+            if metadata.get("user_id") != user_id:
+                return f"Unauthorized access to unpublish file '{file_name}'."
+            
+            metadata['visibility'] = 'private'
+            create_metadata(file_name, metadata)
+            
+            FileRepository().update_file(file_name, metadata)
+            return f"File '{file_name}' unpublished successfully."
+        
+        except Exception as e:
+            return f"Error unpublishing file '{file_name}': {str(e)}"

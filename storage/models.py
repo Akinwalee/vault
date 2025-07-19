@@ -40,6 +40,8 @@ class FileModel(BaseModel):
     file_size: int = Field(..., description="Size of the file in bytes")
     file_id: str = Field(...,description="The file ID from GridFS")
     created_at: str = Field(..., description="Creation timestamp of the file")
+    visibility: str = Field(default='private', description="Visibility of the file (private/public)")
+    type: str = Field(default='file', description="Type of the file")
 
     def to_dict(self):
         """
@@ -51,7 +53,9 @@ class FileModel(BaseModel):
             "file_name": self.file_name,
             "file_size": self.file_size,
             "file_id": self.file_id,
-            "created_at": self.created_at
+            "created_at": self.created_at,
+            "visibility": self.visibility,
+            "type": self.type
         }
 
 
@@ -66,7 +70,9 @@ class FileMetadata(BaseModel):
     file_path: str = Field(..., description="Path to the file on the server")
     user_id: str = Field(..., description="ID of the user who uploaded the file")
     file_id: str = Field(..., description="File ID from GridFS")
-    created_at: str = Field(..., description="Creation timestamp of the file")
+    visibility: str = Field(default='private', description="Visibility of the file (private/public)")
+    created_at: str = Field(..., description="Creation timestamp of the file"),
+    type: str = Field(default='file', description="Type of the file")
 
     def to_dict(self):
         """
@@ -79,5 +85,7 @@ class FileMetadata(BaseModel):
             "file_path": self.file_path,
             "user_id": self.user_id,
             "file_id": self.file_id,
-            "created_at": self.created_at
+            "visibility": self.visibility,
+            "created_at": self.created_at,
+            "type": self.type
         }

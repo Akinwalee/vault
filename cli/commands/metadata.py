@@ -17,16 +17,12 @@ class MetadataCommand(Command):
         """
         if not args or not isinstance(args[0], str) or not args[0].strip():
             raise ValueError("File name must be provided and cannot be empty.")
-        
-        user = UserService.get_user_id()
-        if not user:
-            raise ValueError("No user session found. Cannot read metadata.")
 
         file_path = args[0]
         metadata = FileService().read_metadata(file_path)
         if metadata:
             print(f"\nMetadata for {file_path}:\n")
-            print(f"File Name: {metadata.get('file_name', None)}\nFile ID: {metadata.get('file_id', None)}\nFile Size: {metadata.get('file_size', None)}\nFile Path:{metadata.get("file_path", None)}\nCreated At: {metadata.get('created_at', None)}\n")
+            print(f"File Name: {metadata.get('file_name', None)}\nFile ID: {metadata.get('file_id', None)}\nFile Size: {metadata.get('file_size', None)}\nFile Path: {metadata.get("file_path", None)}\nVisibility: {metadata.get("visibility", None)}\nCreated At: {metadata.get('created_at', None)}\n")
 
         else:
             print(f"No metadata found for {file_path}.")
