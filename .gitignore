@@ -3,3 +3,7 @@
 *uploads
 *metadata.json
 *.env*
+*.png
+*.jpg
+*.jpeg
+*.gif

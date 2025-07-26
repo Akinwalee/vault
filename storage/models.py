@@ -69,7 +69,8 @@ class FileMetadata(BaseModel):
 
     file_name: str = Field(..., description="Name of the file")
     file_size: int = Field(..., description="Size of the file in bytes")
-    file_path: str = Field(..., description="Path to the file on the server")
+    path: str = Field(..., description="Path to the file on the server")
+    file_path: str = Field(..., description="Path to the file in the storage system")
     user_id: str = Field(..., description="ID of the user who uploaded the file")
     file_id: str = Field(..., description="File ID from GridFS")
     visibility: str = Field(default='private', description="Visibility of the file (private/public)")

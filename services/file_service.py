@@ -47,7 +47,7 @@ class FileService(BaseService):
             return f"Error reading file '{file_name}': {str(e)}"
 
 
-    def upload_file(self, file_path, directory_name, user_id=None):
+    def upload_file(self, file_path, path, user_id, directory_name='root'):
         """
         Upload a file to the server.
         :param file_path: Path to the file to upload.
@@ -61,13 +61,12 @@ class FileService(BaseService):
                 type = 'file'
             elif file_extension in ['.jpg', '.jpeg', '.png', '.gif']:
                 type = 'image'
-                output = generate_thumbnail.delay(file_path, file_name)
-                print(f"Thumbnail generation task started with ID: {output.id}")
+                generate_thumbnail.delay(file_path, file_name)
             elif file_extension in ['.mp4', '.avi', '.mov']:
                 type = 'video'
-                #generate thumbnail in the background using celery
+                generate_thumbnail.delay(file_path, file_name)
             else:
-                return f"Unsupported file type: {file_extension}"
+                type = 'other'
 
 
             with open(file_path, 'rb') as file:
@@ -78,6 +77,7 @@ class FileService(BaseService):
                 file_name=file_name,
                 file_size=file_size,
                 file_path=file_path,
+                path = path,
                 user_id=user_id,
                 file_id=str(file_id),
                 type=type,
@@ -94,7 +94,7 @@ class FileService(BaseService):
                 created_at=get_current_time()
             )
             FileRepository().save_file(file_model)
-            result = create_metadata(file_name, file_metadata.to_dict())
+            result = create_metadata(file_id, file_metadata.to_dict())
             if result:
                 return f"File '{file_name}' uploaded successfully."
         except Exception as e:
@@ -112,7 +112,7 @@ class FileService(BaseService):
             
             user_id = UserService.get_user_id()
             if user_id:
-                metadata = {k: v for k, v in metadata.items() if v.get("user_id") == user_id or v.get("visibility") == 'public'}
+                metadata = {k: v for k, v in metadata.items() if (v.get("user_id") == user_id or v.get("visibility") == 'public')}
             else:
                 metadata = {k: v for k, v in metadata.items() if v.get("visibility") == 'public'}
 
@@ -215,7 +215,7 @@ class FileService(BaseService):
         except Exception as e:
             return f"Error unpublishing file '{file_name}': {str(e)}"
 
-    def create_directory(self, directory_name, parent_id=None, directory_path=None):
+    def create_directory(self, directory_name, parent_id=None, directory_path='root/'):
         """
         Create a new directory.
         :param directory_name: Name of the directory to create.
@@ -224,8 +224,10 @@ class FileService(BaseService):
         try:
             user_id = UserService.get_user_id()
             directory = FileRepository().find_directory(directory_name, user_id)
-            if directory:
+            if directory and directory.parent_id == parent_id:
                 return f"Directory '{directory_name}' already exists."
+            
+            directory_path = directory_path if directory_path or directory_path == 'root/' else f'root/{directory_name}'
             new_directory = FolderModel(
                 user_id=user_id,
                 folder_name=directory_name,

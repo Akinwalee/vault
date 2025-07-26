@@ -87,7 +87,6 @@ class UserService(BaseService):
         """
         try:
             user = cls.authenticate_user(username, password)
-            print(user)
             if user:
                 session_data = {"user_id": user.id, "token": str(uuid4())}
                 UserRepository().create_session(session_data)

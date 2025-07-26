@@ -1,3 +1,9 @@
 from celery import Celery
+import os
 
-app = Celery('tasks', broker='redis://localhost:6379/0')
+os.environ.setdefault('CELERY_CONFIG', 'vault')
+
+app = Celery('vault')
+
+app.config_from_object('utils.celeryconfig')
+app.autodiscover_tasks(['tasks'])

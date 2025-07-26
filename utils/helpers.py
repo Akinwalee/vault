@@ -4,7 +4,7 @@ import json
 import os
 
 
-def create_metadata(file_name, value):
+def create_metadata(file_id, value):
     """
     Update a JSON file by adding a new key-value pair.
     
@@ -18,7 +18,7 @@ def create_metadata(file_name, value):
         with open(file_path, 'r') as file:
             data = json.load(file)
         
-        data[file_name] = value
+        data[str(file_id)] = value
         
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)

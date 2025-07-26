@@ -10,7 +10,7 @@ class MkdirCommand(Command):
     def help(self):
         return "Create a new directory."
     
-    def execute(self, *args):
+    def execute(self, args):
         if len(args) < 1:
             return "Usage: mkdir <directory_name>"
         

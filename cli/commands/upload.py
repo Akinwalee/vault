@@ -16,12 +16,14 @@ class UploadCommand(Command):
         
         :param file_path: Path to the file to upload.
         """
-        user = UserService.get_user_id()
-        if not user:
+        user_id = UserService.get_user_id()
+        if not user_id:
             raise ValueError("No user session found. Cannot upload file.")
+        if len(args) > 2:
+            raise ValueError("Usage: vault upload <file_name> <directory_name>")
 
         file_path = args[0] if args else None
-        directory_name = args[1] if len(args) > 1 else None
+        directory_name = args[1] if len(args) > 1 else 'root'
 
         if not file_path:
             raise ValueError("File path must be provided.")
@@ -33,13 +35,13 @@ class UploadCommand(Command):
             raise ValueError(f"File does not exist: {file_path}")
         
         if directory_name:
-            directory = FileService().get_directory(directory_name, user_id=user)
+            directory = FileService().get_directory(directory_name, user_id=user_id)
             if not isinstance(directory, dict):
-                FileService().create_directory(directory_name, user_id=user)
-                file_path = f"{directory_name}/{file_path}"
+                FileService().create_directory(directory_name)
+                path = f"{directory_name}/{file_path}"
 
-
-        return FileService().upload_file(file_path, user_id=user)
+        print(f'Type of directory_name: {type(directory_name)}')
+        return FileService().upload_file(file_path, path, directory_name=directory_name, user_id=user_id)
 
     def help(self):
         """

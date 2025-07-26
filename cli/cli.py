@@ -21,6 +21,6 @@ def execute_command(command_name, args):
     """
     try:
         result = route_command(command_name, *args)
-        click.echo(f"Command '{command_name}' executed successfully: {result}")
+        click.echo(f"Command '{command_name}' executed successfully: \n{result}")
     except ValueError as e:
         click.echo(f"Error: {e}")
