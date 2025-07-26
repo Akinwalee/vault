@@ -92,4 +92,42 @@ class FileRepository:
             return f"Error updating file: {str(e)}"
 
 
-    
+    def find_directory(self, directory_name, user_id):
+        """
+        Find a directory in the database.
+        :param directory_name: Name of the directory to find.
+        :return: Directory data if found, otherwise None.
+        """
+        try:
+            directory = self.mongo_db.directories.find_one({"directory_name": directory_name, "user_id": user_id})
+            if directory:
+                return directory
+            return None
+        except Exception as e:
+            return f"Error finding directory: {str(e)}"
+        
+    def create_directory(self, directory_model):
+        """
+        Create a new directory in the database.
+        :param directory_model: Directory model containing directory data.
+        :return: Confirmation of directory creation.
+        """
+        try:
+            directory_data = directory_model.to_dict()
+            self.mongo_db.directories.insert_one(directory_data)
+            return f"Directory '{directory_data['directory_name']}' created successfully."
+        except Exception as e:
+            return f"Error saving directory: {str(e)}"
+        
+    def get_user_directories(self, user_id):
+        """
+        Retrieve all directories for a specific user.
+        :param user_id: ID of the user whose directories to retrieve.
+        :return: List of directories for the user.
+        """
+        try:
+            directories = list(self.mongo_db.directories.find({"user_id": user_id}))
+            return directories
+        except Exception as e:
+            return f"Error retrieving user directories: {str(e)}"
+        

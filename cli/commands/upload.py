@@ -21,6 +21,7 @@ class UploadCommand(Command):
             raise ValueError("No user session found. Cannot upload file.")
 
         file_path = args[0] if args else None
+        directory_name = args[1] if len(args) > 1 else None
 
         if not file_path:
             raise ValueError("File path must be provided.")
@@ -31,6 +32,13 @@ class UploadCommand(Command):
         if not os.path.isfile(file_path):
             raise ValueError(f"File does not exist: {file_path}")
         
+        if directory_name:
+            directory = FileService().get_directory(directory_name, user_id=user)
+            if not isinstance(directory, dict):
+                FileService().create_directory(directory_name, user_id=user)
+                file_path = f"{directory_name}/{file_path}"
+
+
         return FileService().upload_file(file_path, user_id=user)
 
     def help(self):

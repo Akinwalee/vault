@@ -42,6 +42,7 @@ class FileModel(BaseModel):
     created_at: str = Field(..., description="Creation timestamp of the file")
     visibility: str = Field(default='private', description="Visibility of the file (private/public)")
     type: str = Field(default='file', description="Type of the file")
+    directory_name: str = Field(default=None, description="Name of the directory where the file is stored")
 
     def to_dict(self):
         """
@@ -55,7 +56,8 @@ class FileModel(BaseModel):
             "file_id": self.file_id,
             "created_at": self.created_at,
             "visibility": self.visibility,
-            "type": self.type
+            "type": self.type,
+            "directory_name": self.directory_name
         }
 
 
@@ -73,6 +75,7 @@ class FileMetadata(BaseModel):
     visibility: str = Field(default='private', description="Visibility of the file (private/public)")
     created_at: str = Field(..., description="Creation timestamp of the file"),
     type: str = Field(default='file', description="Type of the file")
+    directory_name: str = Field(default=None, description="Name of the directory where the file is stored")
 
     def to_dict(self):
         """
@@ -87,5 +90,35 @@ class FileMetadata(BaseModel):
             "file_id": self.file_id,
             "visibility": self.visibility,
             "created_at": self.created_at,
-            "type": self.type
+            "type": self.type,
+            "directory_name": self.directory_name
+        }
+    
+class FolderModel(BaseModel):
+    """
+    Folder model for MongoDB.
+    Represents a folder in the database.
+    """
+
+    id: str = Field(default_factory=lambda: str(uuid4()), description="Unique identifier for the folder")
+    user_id: str = Field(..., description="ID of the user who created the folder")
+    folder_name: str = Field(..., description="Name of the folder")
+    parent_id: str = Field(default=None, description="ID of the parent folder (if any)")
+    directory_path: str = Field(..., description="Path to the folder in the storage system")
+    created_at: str = Field(..., description="Creation timestamp of the folder")
+    visibility: str = Field(default='private', description="Visibility of the folder (private/public)")
+    
+    def to_dict(self):
+        """
+        Convert the folder model to a dictionary.
+        :return: Dictionary representation of the folder model.
+        """
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "folder_name": self.folder_name,
+            "parent_id": self.parent_id,
+            "directory_path": self.directory_path,
+            "created_at": self.created_at,
+            "visibility": self.visibility
         }

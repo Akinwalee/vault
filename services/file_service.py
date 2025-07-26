@@ -1,10 +1,11 @@
 from .base_service import BaseService
 import os
 from utils.helpers import get_current_time, create_metadata, list_metadata, get_metadata, delete_metadata
-from storage.models import FileModel, FileMetadata
+from storage.models import FileModel, FileMetadata, FolderModel
 from tempfile import NamedTemporaryFile
 from services.user_service import UserService
 from repositories.file_repository import FileRepository
+from tasks.thumbnail import generate_thumbnail
 
 
 class FileService(BaseService):
@@ -46,7 +47,7 @@ class FileService(BaseService):
             return f"Error reading file '{file_name}': {str(e)}"
 
 
-    def upload_file(self, file_path, user_id=None):
+    def upload_file(self, file_path, directory_name, user_id=None):
         """
         Upload a file to the server.
         :param file_path: Path to the file to upload.
@@ -55,6 +56,19 @@ class FileService(BaseService):
         try:
             file_name = file_path.split('/')[-1]
             file_size = os.path.getsize(file_path)
+            file_extension = os.path.splitext(file_name)[1].lower()
+            if file_extension in ['.txt', '.pdf', '.docx', '.md']:
+                type = 'file'
+            elif file_extension in ['.jpg', '.jpeg', '.png', '.gif']:
+                type = 'image'
+                output = generate_thumbnail.delay(file_path, file_name)
+                print(f"Thumbnail generation task started with ID: {output.id}")
+            elif file_extension in ['.mp4', '.avi', '.mov']:
+                type = 'video'
+                #generate thumbnail in the background using celery
+            else:
+                return f"Unsupported file type: {file_extension}"
+
 
             with open(file_path, 'rb') as file:
                 file_id = FileRepository().upload_file(file, file_name)
@@ -66,6 +80,8 @@ class FileService(BaseService):
                 file_path=file_path,
                 user_id=user_id,
                 file_id=str(file_id),
+                type=type,
+                directory_name=directory_name,
                 created_at=get_current_time()
             )
             file_model = FileModel(
@@ -73,6 +89,8 @@ class FileService(BaseService):
                 file_name=file_name,
                 file_size=file_size,
                 file_id=str(file_id),
+                directory_name=directory_name,
+                type=type,
                 created_at=get_current_time()
             )
             FileRepository().save_file(file_model)
@@ -196,3 +214,79 @@ class FileService(BaseService):
         
         except Exception as e:
             return f"Error unpublishing file '{file_name}': {str(e)}"
+
+    def create_directory(self, directory_name, parent_id=None, directory_path=None):
+        """
+        Create a new directory.
+        :param directory_name: Name of the directory to create.
+        :return: Confirmation of directory creation.
+        """
+        try:
+            user_id = UserService.get_user_id()
+            directory = FileRepository().find_directory(directory_name, user_id)
+            if directory:
+                return f"Directory '{directory_name}' already exists."
+            new_directory = FolderModel(
+                user_id=user_id,
+                folder_name=directory_name,
+                parent_id=parent_id,
+                directory_path=directory_path,
+                created_at=get_current_time()
+            )
+            FileRepository().create_directory(new_directory)
+            return f"Directory '{directory_name}' created successfully."
+        except Exception as e:
+            return f"Error making directory '{directory_name}': {str(e)}"
+
+    def list_directories(self, user_id=None):
+        """
+        List all directories for the user.
+        :param user_id: ID of the user to list directories for.
+        :return: List of directories.
+        """
+        try:
+            user_id = UserService.get_user_id() if not user_id else user_id
+            directories = FileRepository().get_user_directories(user_id)
+            if not directories:
+                return "No directories found."
+            return directories
+        except Exception as e:
+            return f"Error listing directories: {str(e)}"
+
+    def get_directory(self, directory_name, user_id=None):
+        """
+        Get details of a specific directory.
+        :param directory_name: Name of the directory to retrieve.
+        :return: Details of the specified directory.
+        """
+        try:
+            user_id = UserService.get_user_id()
+            directory = FileRepository().find_directory(directory_name, user_id)
+            if not directory:
+                return f"Directory '{directory_name}' not found."
+            return directory
+        except Exception as e:
+            return f"Error retrieving directory '{directory_name}': {str(e)}"
+        
+    
+    def get_folder_files(self, directory_name):
+        """
+        Get all files in a specific directory.
+        :param directory_name: Name of the directory to retrieve files from.
+        :return: List of files in the specified directory.
+        """
+        try:
+            user_id = UserService.get_user_id()
+            metadata = list_metadata()
+
+            if user_id:
+                metadata = {k: v for k, v in metadata.items() if v.get("directory_name") == directory_name and (v.get("user_id") == user_id or v.get("visibility") == 'public')}
+            else:
+                metadata = {k: v for k, v in metadata.items() if v.get("directory_name") == directory_name and v.get("visibility") == 'public'}
+
+            return metadata
+        
+        except Exception as e:
+            return f"Error retrieving files from directory '{directory_name}': {str(e)}"
+        
+    

@@ -10,6 +10,8 @@ from cli.commands.logout import LogoutCommand
 from cli.commands.whoami import WhoamiCommand
 from cli.commands.publish import PublishCommand
 from cli.commands.unpublish import UnpublishCommand
+from cli.commands.mkdir import MkdirCommand
+from cli.commands.ls import LsCommand
 
 
 COMMANDS = {
@@ -24,7 +26,9 @@ COMMANDS = {
     "logout": LogoutCommand,
     "whoami": WhoamiCommand,
     "publish": PublishCommand,
-    "unpublish": UnpublishCommand
+    "unpublish": UnpublishCommand,
+    "mkdir": MkdirCommand,
+    "ls": LsCommand,
 }
 
 def route_command(command_name, *args):
