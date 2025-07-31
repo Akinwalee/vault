@@ -31,52 +31,55 @@ class FileService(BaseService):
             metadata = get_metadata(file_name)
             user_id = UserService.get_user_id()
             if not metadata:
-                return f"No metadata found for file '{file_name}'."
+                raise ValueError(f"No metadata found for file '{file_name}'.")
             if metadata.get("user_id") != user_id and metadata.get("visibility") != 'public':
-                return f"Unauthorized access to file '{file_name}'."
+                raise ValueError(f"Unauthorized access to file '{file_name}'.")
             
             with NamedTemporaryFile('+w', delete=True) as temp_file:
                 temp_file = FileRepository().retrieve_file(file_name)
                 if temp_file:
                     content = temp_file.decode('utf-8')
                 else:
-                    return f"File '{file_name}' not found in the database."
+                    return ValueError(f"File '{file_name}' not found in the database.")
             return content
         
         except Exception as e:
-            return f"Error reading file '{file_name}': {str(e)}"
+            raise ValueError(f"Error reading file '{file_name}': {str(e)}")
 
 
-    def upload_file(self, file_path, path, user_id, directory_name='root'):
+    def upload_file(self, file_name, data, user_id, directory_name='root'):
         """
         Upload a file to the server.
         :param file_path: Path to the file to upload.
         :return: Confirmation of upload.
         """
         try:
-            file_name = file_path.split('/')[-1]
-            file_size = os.path.getsize(file_path)
+            directory = self.get_directory(directory_name, user_id=user_id)
+            if not isinstance(directory, dict):
+                FileService().create_directory(directory_name)
+                path = f"{directory_name}/{file_name}"
+
+
+            file_size = os.path.getsize(data)
             file_extension = os.path.splitext(file_name)[1].lower()
             if file_extension in ['.txt', '.pdf', '.docx', '.md']:
                 type = 'file'
             elif file_extension in ['.jpg', '.jpeg', '.png', '.gif']:
                 type = 'image'
-                generate_thumbnail.delay(file_path, file_name)
+                generate_thumbnail.delay(data, file_name)
             elif file_extension in ['.mp4', '.avi', '.mov']:
                 type = 'video'
-                generate_thumbnail.delay(file_path, file_name)
+                generate_thumbnail.delay(data, file_name)
             else:
                 type = 'other'
 
 
-            with open(file_path, 'rb') as file:
-                file_id = FileRepository().upload_file(file, file_name)
+            file_id = FileRepository().upload_file(data, file_name)
 
 
             file_metadata = FileMetadata(
                 file_name=file_name,
                 file_size=file_size,
-                file_path=file_path,
                 path = path,
                 user_id=user_id,
                 file_id=str(file_id),
@@ -95,10 +98,10 @@ class FileService(BaseService):
             )
             FileRepository().save_file(file_model)
             result = create_metadata(file_id, file_metadata.to_dict())
-            if result:
-                return f"File '{file_name}' uploaded successfully."
+            
+            return result
         except Exception as e:
-            return f"Error uploading file: {str(e)}"
+            raise ValueError(f"Error uploading file: {str(e)}")
         
     def list_files(self, user_id=None):
         """
@@ -108,7 +111,7 @@ class FileService(BaseService):
         try:
             metadata = list_metadata()
             if not metadata:
-                return "No files found."
+                raise ValueError("No files found.")
             
             user_id = UserService.get_user_id()
             if user_id:
@@ -118,7 +121,7 @@ class FileService(BaseService):
 
             return metadata
         except Exception as e:
-            return f"Error listing files: {str(e)}"
+            raise ValueError(f"Error listing files: {str(e)}")
 
     def read_metadata(self, file_name):
         """
@@ -130,12 +133,12 @@ class FileService(BaseService):
             metadata = get_metadata(file_name)
             user_id = UserService.get_user_id()
             if not metadata:
-                return f"No metadata found for file '{file_name}'."
+                raise ValueError(f"No metadata found for file '{file_name}'.")
             if metadata.get("user_id") != user_id and metadata.get("visibility") != 'public':
-                return f"Unauthorized access to metadata for file '{file_name}'."
+                raise ValueError(f"Unauthorized access to metadata for file '{file_name}'.")
             return metadata
         except Exception as e:
-            return f"Error reading metadata for file '{file_name}': {str(e)}"
+            raise ValueError(f"Error reading metadata for file '{file_name}': {str(e)}")
         
     def delete_file(self, file_name):
         """
@@ -175,20 +178,20 @@ class FileService(BaseService):
             metadata = get_metadata(file_name)
             user_id = UserService.get_user_id()
             if not user_id:
-                return "No user session found. Cannot publish file."
+                raise ValueError("No user session found. Cannot publish file.")
             if not metadata:
-                return f"No metadata found for file '{file_name}'."
+                raise ValueError(f"No metadata found for file '{file_name}'.")
             if metadata.get("user_id") != user_id:
-                return f"Unauthorized access to publish file '{file_name}'."
+                raise ValueError(f"Unauthorized access to publish file '{file_name}'.")
             
             metadata['visibility'] = 'public'
             create_metadata(file_name, metadata)
             
             FileRepository().update_file(file_name, metadata)
-            return f"File '{file_name}' published successfully."
+            return metadata
         
         except Exception as e:
-            return f"Error publishing file '{file_name}': {str(e)}"
+            raise ValueError(f"Error publishing file '{file_name}': {str(e)}")
         
     def unpublish_file(self, file_name):
         """
@@ -200,22 +203,22 @@ class FileService(BaseService):
             metadata = get_metadata(file_name)
             user_id = UserService.get_user_id()
             if not user_id:
-                return "No user session found. Cannot unpublish file."
+                raise ValueError("No user session found. Cannot unpublish file.")
             if not metadata:
-                return f"No metadata found for file '{file_name}'."
+                raise ValueError(f"No metadata found for file '{file_name}'.")
             if metadata.get("user_id") != user_id:
-                return f"Unauthorized access to unpublish file '{file_name}'."
+                raise ValueError(f"Unauthorized access to unpublish file '{file_name}'.")
             
             metadata['visibility'] = 'private'
             create_metadata(file_name, metadata)
             
             FileRepository().update_file(file_name, metadata)
-            return f"File '{file_name}' unpublished successfully."
+            return metadata
         
         except Exception as e:
-            return f"Error unpublishing file '{file_name}': {str(e)}"
+            raise ValueError(f"Error unpublishing file '{file_name}': {str(e)}")
 
-    def create_directory(self, directory_name, parent_id=None, directory_path='root/'):
+    def create_directory(self, directory_name, parent_id, directory_path='root/'):
         """
         Create a new directory.
         :param directory_name: Name of the directory to create.
@@ -225,7 +228,7 @@ class FileService(BaseService):
             user_id = UserService.get_user_id()
             directory = FileRepository().find_directory(directory_name, user_id)
             if directory and directory.parent_id == parent_id:
-                return f"Directory '{directory_name}' already exists."
+                raise ValueError(f"Directory '{directory_name}' already exists.")
             
             directory_path = directory_path if directory_path or directory_path == 'root/' else f'root/{directory_name}'
             new_directory = FolderModel(
@@ -238,7 +241,7 @@ class FileService(BaseService):
             FileRepository().create_directory(new_directory)
             return f"Directory '{directory_name}' created successfully."
         except Exception as e:
-            return f"Error making directory '{directory_name}': {str(e)}"
+            raise ValueError(f"Error making directory '{directory_name}': {str(e)}")
 
     def list_directories(self, user_id=None):
         """
@@ -265,10 +268,10 @@ class FileService(BaseService):
             user_id = UserService.get_user_id()
             directory = FileRepository().find_directory(directory_name, user_id)
             if not directory:
-                return f"Directory '{directory_name}' not found."
+                raise ValueError(f"Directory '{directory_name}' not found.")
             return directory
         except Exception as e:
-            return f"Error retrieving directory '{directory_name}': {str(e)}"
+            raise ValueError(f"Error retrieving directory '{directory_name}': {str(e)}")
         
     
     def get_folder_files(self, directory_name):

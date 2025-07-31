@@ -4,7 +4,7 @@ import os
 import subprocess
 
 @app.task
-def generate_thumbnail(file_path, file_name):
+def generate_thumbnail(data, file_name):
     """
     Generate a thumbnail for the given file.
     
@@ -13,6 +13,9 @@ def generate_thumbnail(file_path, file_name):
     """
     thumbnails_path = 'storage/thumbnails/'
     os.makedirs(thumbnails_path, exist_ok=True)
+    file_path = f"{thumbnails_path}{file_name}"
+    with open(file_path, 'wb') as f:
+        f.write(data)
 
     file_extension = os.path.splitext(file_name)[1].lower()
     base_name = os.path.splitext(file_name)[0]
@@ -26,7 +29,7 @@ def generate_thumbnail(file_path, file_name):
                 thumbnail_path = f"{thumbnails_path}{base_name}_thumbnail.jpg"
                 if image.mode in ['RGBA', 'LA']:
                     background = Image.new("RGB", image.size, (255, 255, 255))
-                    background.paste(image, mask=image.split()[-1])  # Use alpha channel
+                    background.paste(image, mask=image.split()[-1])
                     image = background
                 else:
                     image = image.convert("RGB")

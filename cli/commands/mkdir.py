@@ -22,12 +22,10 @@ class MkdirCommand(Command):
             return "Directory name cannot be empty."
         if parent_name:
             parent = FileService().get_directory(parent_name)
-            print(parent)
             if not parent:
-                return f"Parent directory '{parent_name}' already exist."
+                return f"Parent directory '{parent_name}' does not exist."
             else:
                 parent_id = parent.id
-                print("Parent ID",parent_id)
             directory_path = f"{parent_name}/{directory_name}"
         try:
             FileService.create_directory(directory_name, parent_id, directory_path)

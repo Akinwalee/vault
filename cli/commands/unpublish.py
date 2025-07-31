@@ -18,7 +18,11 @@ class UnpublishCommand(Command):
             raise ValueError("File name must be provided and cannot be empty.")
         
         file_name = args[0]
-        return FileService().unpublish_file(file_name)
+        result = FileService().unpublish_file(file_name)
+        if isinstance(result, dict):
+            return f"File '{file_name}' unpublished successfully."
+        else:
+            raise ValueError(f"Error unpublishing file '{file_name}': {result}")
 
     def help(self):
         """

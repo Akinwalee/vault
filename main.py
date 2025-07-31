@@ -11,4 +11,8 @@ def shutdown_db():
 
 
 if __name__ == "__main__":
+    db = Database()
+    mongo = db.get_mongo_db("vault")
+    fd = db.fs
+    redis = db.get_redis_db()
     cli()

@@ -1,6 +1,7 @@
 from cli.cli import click
 from services.user_service import UserService
 from cli.command import Command
+from storage.models import UserModel
 
 
 class LoginCommand(Command):
@@ -25,7 +26,16 @@ class LoginCommand(Command):
         if not username or not password:
             raise ValueError("Username and password cannot be empty.")
         
-        return UserService().login_user(username, password)
+        result = UserService().login_user(username, password)
+        if isinstance(result, UserModel):
+            del result.password
+            return {
+                "message": f"User '{result.username}' logged in successfully.",
+                "user_data": result.to_dict(),
+                "status": 200
+            }
+        else:
+            raise ValueError(f"Error logging in user: {result}")
 
     def help(self):
         """

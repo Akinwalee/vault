@@ -1,6 +1,5 @@
 from cli.command import Command
 from services.file_service import FileService
-from services.user_service import UserService
 
 class ListCommand(Command):
     """

@@ -1,5 +1,5 @@
 # Create basic database models for MongoDB
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Optional
 from uuid import uuid4
 
 
@@ -70,7 +70,6 @@ class FileMetadata(BaseModel):
     file_name: str = Field(..., description="Name of the file")
     file_size: int = Field(..., description="Size of the file in bytes")
     path: str = Field(..., description="Path to the file on the server")
-    file_path: str = Field(..., description="Path to the file in the storage system")
     user_id: str = Field(..., description="ID of the user who uploaded the file")
     file_id: str = Field(..., description="File ID from GridFS")
     visibility: str = Field(default='private', description="Visibility of the file (private/public)")
@@ -121,5 +120,100 @@ class FolderModel(BaseModel):
             "parent_id": self.parent_id,
             "directory_path": self.directory_path,
             "created_at": self.created_at,
+            "visibility": self.visibility
+        }
+    
+
+
+class RegisterModel(BaseModel):
+    """
+    User registration model.
+    Represents the data required for user registration.
+    """
+
+    username: str = Field(..., description="Username of the user")
+    email: str = Field(..., description="Email address of the user")
+    password: str = Field(..., description="Password of the user")
+
+    def to_dict(self):
+        """
+        Convert the user registration model to a dictionary.
+        :return: Dictionary representation of the user registration model.
+        """
+        return {
+            "username": self.username,
+            "email": self.email,
+            "password": self.password
+        }
+    
+class LoginModel(BaseModel):
+    """
+    User login model.
+    Represents the data required for user login.
+    """
+
+    username: str = Field(..., description="Username of the user")
+    password: str = Field(..., description="Password of the user")
+
+    def to_dict(self):
+        """
+        Convert the user login model to a dictionary.
+        :return: Dictionary representation of the user login model.
+        """
+        return {
+            "username": self.username,
+            "password": self.password
+        }
+
+
+class CreateFileOrFolderModel(BaseModel):
+    """
+    Model for creating a file or folder.
+    Represents the data required to create a file or folder.
+    """
+
+    name: str = Field(..., description="Name of the file or folder")
+    data: str = Optional(Field(default=None, description="Data to be stored in the file (if applicable)"))
+    type: str = Field(..., description="Type of the item (file/folder)")
+    parent_name: str = Field(default=None, description="Name of the parent folder (if any)")
+    visibility: str = Field(default='private', description="Visibility of the item (private/public)")
+    directory_name: str = Optional(Field(default=None, description="Name of the directory where the item should be stored"))
+
+    def to_dict(self):
+        """
+        Convert the create file or folder model to a dictionary.
+        :return: Dictionary representation of the create file or folder model.
+        """
+        return {
+            "name": self.name,
+            "data": self.data,
+            "type": self.type,
+            "parent_name": self.parent_name,
+            "visibility": self.visibility,
+            "directory_name": self.directory_name
+        }
+
+    def to_file_data(self):
+        """
+        Convert the create file or folder model to a file data dictionary.
+        :return: Dictionary representation of the file data.
+        """
+        return {
+            "file_name": self.name,
+            "data": self.data,
+            "type": self.type,
+            "visibility": self.visibility,
+            "directory_name": self.directory_name
+        }
+    
+    def to_folder_data(self):
+        """
+        Convert the create file or folder model to a folder data dictionary.
+        :return: Dictionary representation of the folder data.
+        """
+        return {
+            "folder_name": self.name,
+            "parent_name": self.parent_name,
+            "directory_name": self.directory_name,
             "visibility": self.visibility
         }

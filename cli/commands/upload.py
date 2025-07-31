@@ -33,15 +33,12 @@ class UploadCommand(Command):
             raise ValueError("File path cannot be empty or whitespace.")
         if not os.path.isfile(file_path):
             raise ValueError(f"File does not exist: {file_path}")
-        
-        if directory_name:
-            directory = FileService().get_directory(directory_name, user_id=user_id)
-            if not isinstance(directory, dict):
-                FileService().create_directory(directory_name)
-                path = f"{directory_name}/{file_path}"
 
-        print(f'Type of directory_name: {type(directory_name)}')
-        return FileService().upload_file(file_path, path, directory_name=directory_name, user_id=user_id)
+        file_name = file_path.split('/')[-1]
+        with open(file_path, 'rb') as f:
+            data = f.read()
+
+        return FileService().upload_file(file_name, data, directory_name=directory_name, user_id=user_id)
 
     def help(self):
         """

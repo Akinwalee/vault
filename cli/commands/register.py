@@ -25,7 +25,11 @@ class RegisterCommand(Command):
         
         user = UserModel(**args)
         
-        return UserService().create_user(user)
+        result = UserService.create_user(user)
+        if isinstance(user, UserModel):
+            return f"User '{result.username}' registered successfully."
+        else:
+            raise ValueError(f'Error registering user: {result}')
     
     def help(self):
         return super().help()

@@ -32,16 +32,16 @@ class UserService(BaseService):
             user_data = user.to_dict()
             existing_user = UserRepository().find_by_email(user_data["email"])
             if existing_user:
-                return "A user with that email already exists"
+                raise("A user with that email already exists")
             
             hash = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt())
             user_data['password'] = hash.decode('utf-8')
             user_data['id'] = id
             user_data['created_at'] = user_data.get('created_at', str(uuid4()))
             UserRepository().create_user(user_data)
-            return f"User '{user_data['username']}' created successfully."
+            return user_data
         except Exception as e:
-            return f"Error creating user: {str(e)}"
+            raise ValueError(f"Error creating user: {str(e)}")
         
     @classmethod
     def get_current_user(cls):
@@ -75,7 +75,7 @@ class UserService(BaseService):
                 return UserModel(**user_data)
             return None
         except Exception as e:
-            return f"Error authenticating user: {str(e)}"
+            raise ValueError("Error authenticating user: {str(e)}")
         
     @classmethod
     def login_user(cls, username: str, password: str):
@@ -90,11 +90,11 @@ class UserService(BaseService):
             if user:
                 session_data = {"user_id": user.id, "token": str(uuid4())}
                 UserRepository().create_session(session_data)
-                return f"User '{username}' logged in successfully."
+                return user
             else:
                 return "Invalid username or password."
         except Exception as e:
-            return f"Error logging in user: {str(e)}"
+            raise ValueError(f"Error logging in user: {str(e)}")
         
     @classmethod
     def logout_user(cls):
@@ -106,7 +106,7 @@ class UserService(BaseService):
             UserRepository().delete_session()
             return "User logged out successfully."
         except Exception as e:
-            return f"Error logging out user: {str(e)}"
+            raise ValueError(f"Error logging out user: {str(e)}")
         
     @classmethod
     def get_user_id(cls):
@@ -120,4 +120,4 @@ class UserService(BaseService):
                 return session.get("user_id")
             return None
         except Exception as e:
-            return f"Error retrieving user ID: {str(e)}"
+            raise ValueError(f"Error retrieving user ID: {str(e)}")

@@ -6,3 +6,5 @@ pydantic
 bcrypt
 celery
 Pillow
+fastapi[all]
+uvicorn

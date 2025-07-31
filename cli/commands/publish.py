@@ -18,7 +18,11 @@ class PublishCommand(Command):
             raise ValueError("File name must be provided and cannot be empty.")
         
         file_name = args[0]
-        return FileService().publish_file(file_name)
+        result = FileService().publish_file(file_name)
+        if isinstance(result, dict):
+            return f"File '{file_name}' published successfully."
+        else:
+            raise ValueError(f"Error publishing file '{file_name}': {result}")
 
     def help(self):
         """
